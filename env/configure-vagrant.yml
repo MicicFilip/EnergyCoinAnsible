@@ -1,0 +1,13 @@
+- name: Configure the EnergyCoin explorer server
+  hosts: 127.0.0.1
+  connection: local
+  user: vagrant
+  roles:
+    - supervisor
+    - energycoin
+  vars:
+    - client_rpc_user: "rpcenergyuser"
+    - client_rpc_password: "rpcenergypassword"
+    - client_rpc_port: 22706
+    - client_default_port: 22705
+    - regtest: False

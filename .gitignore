@@ -1,0 +1,10 @@
+.vagrant
+*.retry
+**/*.pyc
+*.cprofile
+exploder.egg-info/*
+*.zip
+.cache
+.eggs
+.idea/
+.vscode

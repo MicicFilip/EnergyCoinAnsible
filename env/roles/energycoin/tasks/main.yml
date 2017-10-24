@@ -1,0 +1,89 @@
+- name: Install the energycoind client prerequisites
+  apt: name={{item}} update_cache=yes state=present
+  with_items:
+    - libexempi3
+    - libpq-dev
+    - python-dev
+    - libffi-dev
+    - libncurses5-dev
+    - libjpeg-dev
+    - zlib1g-dev
+    - libtiff5
+    - ntp
+    - build-essential
+    - libssl-dev
+    - libdb-dev
+    - libdb++-dev
+    - libboost-all-dev
+    - libqrencode-dev
+    - autoconf
+    - automake
+    - pkg-config
+    - unzip
+    - libtool
+  become: True
+
+- name: Clone the EnergyCoin repository
+  git: >
+    dest=~/energycoin
+    repo=https://github.com/EnergyCoinProject/energycoin
+    version="1.6.0"
+
+- name: Giving leveldb +x permission
+  file:
+    path: ~/energycoin/src/leveldb/build_detect_platform 
+    mode: a+x
+
+- name: Configure EnergyCoin client
+  command: make -f makefile.unix
+  args:
+    chdir: ~/energycoin/src
+
+- name: Create the data directory
+  file: path=~/.EnergyCoin state=directory
+
+- name: Copy the default energycoin.conf file
+  template: src=templates/energycoin.conf dest=~/.EnergyCoin/EnergyCoin.conf
+
+- name: Create the logs directory
+  file: path=~/logs state=directory
+
+- name: Copy the supervisor startup file for vagrant
+  template: src=templates/energycoin-supervisor.conf dest=/etc/supervisor/conf.d/energycoin-supervisor.conf
+  when:
+    - regtest == False
+  become: True
+
+- name: Copy the supervisor startup file for staging
+  template: src=templates/energycoin-regtest-supervisor.conf dest=/etc/supervisor/conf.d/energycoin-supervisor.conf
+  when:
+    - regtest == True
+  become: True
+
+- name: Update supervisorctl
+  command: "supervisorctl update"
+  become: True
+
+- name: Restart the energycoind service
+  supervisorctl: name=energycoind state=restarted
+  become: True
+
+- name: Get supervisorctl status
+  command: "supervisorctl status"
+  register: supervisor_output
+  become: True
+
+- name: Debug
+  debug: var=supervisor_output
+
+- name: Fail the play if the previous command did not succeed
+  fail: msg="Some of the supervisor services failed to start"
+  when: "'FATAL' in supervisor_output.stdout or 'BACKOFF' in supervisor_output.stdout"
+
+- name: Enable the energycoin ports in ufw
+  ufw: rule=allow port={{ item }}
+  with_items:
+    - 22706
+    - 22705
+  become: True
+
