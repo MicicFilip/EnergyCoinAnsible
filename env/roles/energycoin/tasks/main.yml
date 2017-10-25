@@ -28,6 +28,7 @@
     dest=~/energycoin
     repo=https://github.com/EnergyCoinProject/energycoin
     version="1.6.0"
+    force=yes
 
 - name: Giving leveldb +x permission
   file:
