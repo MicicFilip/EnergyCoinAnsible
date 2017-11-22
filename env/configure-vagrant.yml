@@ -4,10 +4,13 @@
   user: vagrant
   roles:
     - supervisor
-    - energycoin
+    - energycoind
+    - ufw
+    - virtualenv
+    - application
   vars:
     - client_rpc_user: "rpcenergyuser"
     - client_rpc_password: "rpcenergypassword"
     - client_rpc_port: 22706
     - client_default_port: 22705
-    - regtest: False
+    - regtest: ""
